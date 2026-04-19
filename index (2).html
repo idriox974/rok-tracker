@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0d1117">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RoK Tracker">
+<meta name="description" content="Suivi de statistiques Rise of Kingdoms - KvK Tracker">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>RoK KvK Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.15);--text:#e6edf3;--text2:#8b949e;--text3:#484f58;--accent:#1D9E75;--accent2:#0F6E56;--blue:#378ADD;--amber:#EF9F27;--red:#E24B4A;--r:10px;--r-sm:6px}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;overflow:hidden}
+.app{display:flex;flex-direction:column;height:100vh;height:100dvh}
+.content{flex:1;overflow-y:auto;overflow-x:hidden;padding:16px 16px 86px;scroll-behavior:smooth}
+.content::-webkit-scrollbar{display:none}
+.header{padding:48px 16px 12px;background:var(--bg);border-bottom:0.5px solid var(--border);z-index:10}
+.app-title{font-family:'Rajdhani',sans-serif;font-size:22px;font-weight:700;letter-spacing:1px}
+.app-title span{color:var(--accent)}
+.header-sub{font-size:11px;color:var(--text2);margin-top:2px}
+.nav{display:flex;background:var(--bg2);border-top:0.5px solid var(--border);padding:8px 0 max(8px,env(safe-area-inset-bottom));position:fixed;bottom:0;left:0;right:0;z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;background:none;border:none;color:var(--text2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:color .2s}
+.nav-btn.active{color:var(--accent)}
+.nav-icon{font-size:20px;line-height:1}
+.nav-label{font-size:10px;font-weight:500}
+.page{display:none}.page.active{display:block}
+.card{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:12px}
+.card-accent{border-left:3px solid var(--accent)}
+.section-title{font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--text3);margin:16px 0 8px;font-family:'Rajdhani',sans-serif}
+.sub-title{font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--text3);margin:10px 0 7px;font-family:'Rajdhani',sans-serif}
+.metric-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.metric{background:var(--bg3);border-radius:var(--r-sm);padding:10px 12px}
+.metric-label{font-size:10px;color:var(--text2);margin-bottom:3px;letter-spacing:.3px}
+.metric-value{font-family:'Rajdhani',sans-serif;font-size:21px;font-weight:700;color:var(--text);line-height:1.1}
+.metric-sub{font-size:10px;color:var(--text3);margin-top:2px}
+.progress-wrap{margin:6px 0}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px}
+.progress-bar{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.4px;font-family:'Rajdhani',sans-serif}
+.badge-green{background:rgba(29,158,117,.2);color:#5DCAA5;border:0.5px solid rgba(29,158,117,.3)}
+.badge-amber{background:rgba(239,159,39,.15);color:#EF9F27;border:0.5px solid rgba(239,159,39,.3)}
+.badge-red{background:rgba(226,75,74,.15);color:#E24B4A;border:0.5px solid rgba(226,75,74,.3)}
+.form-group{margin-bottom:11px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:block;font-size:11px;font-weight:500;color:var(--text2);margin-bottom:5px;letter-spacing:.3px}
+input[type=number],input[type=text],select{width:100%;padding:9px 11px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r-sm);color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;appearance:none;-webkit-appearance:none;transition:border-color .2s}
+input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(29,158,117,.15)}
+select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238b949e' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.btn{padding:10px 18px;border-radius:var(--r-sm);border:0.5px solid var(--border2);background:var(--bg3);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;width:100%;margin-bottom:8px}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:active{background:var(--accent2)}
+.btn.danger{border-color:rgba(226,75,74,.4);color:var(--red)}
+.btn-row{display:flex;gap:8px}
+.btn-row .btn{margin-bottom:0}
+.sep{height:0.5px;background:var(--border);margin:12px 0}
+/* tier grid */
+.tier-grid{display:grid;gap:6px;margin-bottom:4px}
+.tier-grid-5{grid-template-columns:56px repeat(5,1fr)}
+.tier-grid-4{grid-template-columns:56px repeat(4,1fr)}
+.tier-hdr{font-size:9px;font-weight:600;color:var(--text3);text-align:center;letter-spacing:.5px;padding-bottom:2px;font-family:'Rajdhani',sans-serif}
+.tier-hdr:first-child{text-align:left}
+.tier-label{font-size:11px;font-weight:700;color:var(--text2);font-family:'Rajdhani',sans-serif;letter-spacing:.5px;display:flex;align-items:center}
+.tier-grid input{padding:7px 4px;font-size:12px;text-align:center}
+/* kvk */
+.kvk-item{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:border-color .2s}
+.kvk-item:active{border-color:var(--accent);background:var(--bg3)}
+.kvk-item-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.kvk-name{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:600;letter-spacing:.3px}
+.kvk-mini-stats{display:flex;gap:14px;flex-wrap:wrap}
+.kvk-mini-stat{font-size:11px;color:var(--text2)}
+.kvk-mini-stat span{color:var(--text);font-weight:500}
+.kvk-date{font-size:10px;color:var(--text3);margin-top:6px}
+.obj-item{background:var(--bg3);border-radius:var(--r-sm);padding:12px;margin-bottom:8px}
+.obj-item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.obj-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px;flex-shrink:0}
+.obj-name-wrap{display:flex;align-items:center}
+.obj-name{font-size:13px;font-weight:500}
+.obj-del{background:none;border:none;cursor:pointer;font-size:18px;color:var(--text3);line-height:1;padding:0 2px}
+.obj-del:active{color:var(--red)}
+.chart-wrap{position:relative;width:100%;height:200px}
+.chart-legend{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;font-size:11px;color:var(--text2)}
+.legend-dot{width:8px;height:8px;border-radius:2px;display:inline-block;margin-right:4px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;align-items:flex-end;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--bg2);border-radius:var(--r) var(--r) 0 0;border:0.5px solid var(--border);padding:20px 16px max(20px,env(safe-area-inset-bottom));width:100%;max-height:88vh;overflow-y:auto}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-title{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;letter-spacing:.5px}
+.modal-close{background:var(--bg3);border:none;cursor:pointer;font-size:18px;color:var(--text2);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.feedback{padding:10px 14px;border-radius:var(--r-sm);font-size:13px;margin-top:8px;display:none}
+.feedback.ok{background:rgba(29,158,117,.15);color:#5DCAA5;border:0.5px solid rgba(29,158,117,.3)}
+.feedback.info{background:rgba(55,138,221,.15);color:#378ADD;border:0.5px solid rgba(55,138,221,.3)}
+.tip{font-size:11px;color:var(--text3);margin-top:5px;line-height:1.5}
+.empty{text-align:center;padding:36px 20px;color:var(--text2);font-size:13px}
+.empty-icon{font-size:34px;margin-bottom:10px;opacity:.4}
+.calc-good{color:#5DCAA5}.calc-mid{color:var(--amber)}.calc-bad{color:var(--red)}
+.rss-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid var(--border)}
+.rss-row:last-child{border-bottom:none}
+.rss-left{display:flex;align-items:center;gap:10px}
+.rss-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.rss-name{font-size:12px;font-weight:500;color:var(--text2)}
+.rss-val{font-family:'Rajdhani',sans-serif;font-size:19px;font-weight:700;color:var(--text);text-align:right}
+.rss-sub{font-size:10px;color:var(--text3);text-align:right;margin-top:1px}
+.tab-row{display:flex;gap:6px;margin-bottom:14px}
+.tab-btn{flex:1;padding:8px 4px;background:var(--bg3);border:0.5px solid var(--border2);border-radius:var(--r-sm);font-size:11px;font-weight:500;color:var(--text2);cursor:pointer;text-align:center;transition:all .15s;font-family:'DM Sans',sans-serif}
+.tab-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab-content{display:none}.tab-content.active{display:block}
+@keyframes slideUp{from{transform:translateY(18px);opacity:0}to{transform:translateY(0);opacity:1}}
+.page.active .card,.page.active .kvk-item,.page.active .obj-item{animation:slideUp .22s ease both}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="header">
+  <div style="display:flex;justify-content:space-between;align-items:flex-end">
+    <div>
+      <div class="app-title">RoK <span>KvK</span> Tracker</div>
+      <div class="header-sub" id="header-sub">Rise of Kingdoms — Suivi de statistiques</div>
+    </div>
+    <div id="header-badge"></div>
+  </div>
+</div>
+
+<div class="content">
+
+<!-- ══════════════════════════════════════
+     DASHBOARD
+══════════════════════════════════════ -->
+<div id="page-dashboard" class="page active">
+  <div id="dash-no-kvk" class="card" style="text-align:center;padding:28px 16px">
+    <div style="font-size:32px;margin-bottom:8px;opacity:.3">⚔️</div>
+    <div style="font-size:14px;font-weight:500;margin-bottom:4px">Aucun KvK actif</div>
+    <div style="font-size:12px;color:var(--text2)">Va dans "Saisir" pour commencer un KvK</div>
+  </div>
+  <div id="dash-active" style="display:none">
+
+    <div class="card card-accent">
+      <div class="metric-grid" style="margin-bottom:12px">
+        <div class="metric"><div class="metric-label">Kill Points</div><div class="metric-value" id="m-kp">—</div></div>
+        <div class="metric"><div class="metric-label">Troupes tuées</div><div class="metric-value" id="m-kills">—</div></div>
+        <div class="metric"><div class="metric-label">Pertes T4 total</div><div class="metric-value" id="m-dead4">—</div></div>
+        <div class="metric"><div class="metric-label">Pertes T5 total</div><div class="metric-value" id="m-dead5">—</div></div>
+      </div>
+      <div id="dash-obj-section"></div>
+    </div>
+
+    <div class="section-title">Graphique de progression</div>
+    <div class="card">
+      <div class="chart-legend">
+        <span><span class="legend-dot" style="background:#1D9E75"></span>Kill Points</span>
+        <span><span class="legend-dot" style="background:#378ADD"></span>Objectif KP</span>
+        <span><span class="legend-dot" style="background:#EF9F27"></span>Troupes tuées</span>
+      </div>
+      <div class="chart-wrap"><canvas id="mainChart" role="img" aria-label="Graphique progression KP et kills">Aucune donnée.</canvas></div>
+    </div>
+
+    <div class="section-title">Calculs</div>
+    <div class="card">
+      <div class="metric-grid" style="margin-bottom:12px">
+        <div class="metric"><div class="metric-label">Ratio K/D</div><div class="metric-value" id="c-kd">—</div></div>
+        <div class="metric"><div class="metric-label">Taux obj. KP</div><div class="metric-value" id="c-kp-rate">—</div><div class="metric-sub" id="c-kp-sub"></div></div>
+        <div class="metric"><div class="metric-label">KP manquant</div><div class="metric-value" id="c-kp-missing">—</div></div>
+        <div class="metric"><div class="metric-label">Sessions</div><div class="metric-value" id="c-sessions">—</div></div>
+      </div>
+      <div class="sep"></div>
+      <div class="sub-title">KP calculé depuis kills T4 / T5</div>
+      <div class="metric-grid">
+        <div class="metric"><div class="metric-label">KP estimé (T4×10 + T5×20)</div><div class="metric-value" id="c-kp-tiers">—</div><div class="metric-sub" id="c-kp-tiers-sub"></div></div>
+        <div class="metric"><div class="metric-label">Objectif puissance × multi</div><div class="metric-value" id="c-kp-power">—</div><div class="metric-sub" id="c-kp-power-sub"></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     PARAMÈTRES & OBJECTIFS
+══════════════════════════════════════ -->
+<div id="page-objectifs" class="page">
+
+  <div class="section-title">Paramètres de calcul</div>
+  <div class="card">
+
+    <div class="sub-title">Puissance & objectif KP</div>
+    <div class="form-group"><label>Puissance de départ</label>
+      <input type="number" id="param-power" placeholder="ex: 120000000" min="0" oninput="saveParams();renderCalcPreview()">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Multiplicateur objectif KP</label>
+        <input type="number" id="param-mult" value="1" min="0.1" step="0.1" oninput="saveParams();renderCalcPreview()">
+        <div class="tip">Obj. KP = puissance × multi</div>
+      </div>
+      <div class="form-group">
+        <label>KP de base (avant KvK)</label>
+        <input type="number" id="param-kp-base" placeholder="ex: 5000000" min="0" oninput="saveParams();renderCalcPreview()">
+        <div class="tip">KP déjà acquis au départ</div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+    <div class="sub-title">Mise à mort de base par tier (avant KvK)</div>
+    <div class="tier-grid tier-grid-5">
+      <div class="tier-hdr"></div>
+      <div class="tier-hdr">T1</div><div class="tier-hdr">T2</div><div class="tier-hdr">T3</div><div class="tier-hdr">T4</div><div class="tier-hdr">T5</div>
+      <div class="tier-label">Kills</div>
+      <input type="number" id="base-k1" placeholder="0" min="0" oninput="saveParams();renderCalcPreview()">
+      <input type="number" id="base-k2" placeholder="0" min="0" oninput="saveParams();renderCalcPreview()">
+      <input type="number" id="base-k3" placeholder="0" min="0" oninput="saveParams();renderCalcPreview()">
+      <input type="number" id="base-k4" placeholder="0" min="0" oninput="saveParams();renderCalcPreview()">
+      <input type="number" id="base-k5" placeholder="0" min="0" oninput="saveParams();renderCalcPreview()">
+    </div>
+
+    <div class="sep"></div>
+    <div class="sub-title">Troupes de base par type (avant KvK)</div>
+    <div class="tier-grid tier-grid-4" style="margin-bottom:6px">
+      <div class="tier-hdr"></div>
+      <div class="tier-hdr">Inf.</div><div class="tier-hdr">Arch.</div><div class="tier-hdr">Cav.</div><div class="tier-hdr">Siège</div>
+      <div class="tier-label">T4</div>
+      <input type="number" id="base-inf4" placeholder="0" min="0" oninput="saveParams()">
+      <input type="number" id="base-arc4" placeholder="0" min="0" oninput="saveParams()">
+      <input type="number" id="base-cav4" placeholder="0" min="0" oninput="saveParams()">
+      <input type="number" id="base-sie4" placeholder="0" min="0" oninput="saveParams()">
+      <div class="tier-label">T5</div>
+      <input type="number" id="base-inf5" placeholder="0" min="0" oninput="saveParams()">
+      <input type="number" id="base-arc5" placeholder="0" min="0" oninput="saveParams()">
+      <input type="number" id="base-cav5" placeholder="0" min="0" oninput="saveParams()">
+      <input type="number" id="base-sie5" placeholder="0" min="0" oninput="saveParams()">
+    </div>
+
+    <div class="sep"></div>
+    <div class="sub-title">Objectif KP calculé</div>
+    <div class="metric-grid">
+      <div class="metric"><div class="metric-label">Obj. KP (puissance × multi)</div><div class="metric-value" id="calc-obj-kp">—</div></div>
+      <div class="metric"><div class="metric-label">KP net à faire (− base)</div><div class="metric-value" id="calc-kp-net">—</div></div>
+    </div>
+  </div>
+
+  <div class="section-title">Mes objectifs</div>
+  <div class="card">
+    <div class="form-group"><label>Nom</label><input type="text" id="new-obj-name" placeholder="ex: Objectif KP Phase 1"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Type</label>
+        <select id="new-obj-type">
+          <option value="kp">Kill Points</option>
+          <option value="kills">Troupes tuées</option>
+          <option value="dead">Pertes max</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Couleur</label>
+        <select id="new-obj-color">
+          <option value="#1D9E75">Vert</option>
+          <option value="#378ADD">Bleu</option>
+          <option value="#EF9F27">Ambre</option>
+          <option value="#D4537E">Rose</option>
+          <option value="#7F77DD">Violet</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label>Valeur cible</label><input type="number" id="new-obj-val" placeholder="ex: 50000000" min="0"></div>
+    <button class="btn primary" onclick="addObjectif()">+ Ajouter l'objectif</button>
+  </div>
+  <div id="obj-list"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SAISIE
+══════════════════════════════════════ -->
+<div id="page-saisie" class="page">
+
+  <div class="section-title">Nom du KvK</div>
+  <div class="card">
+    <div class="form-group" style="margin-bottom:0"><label>Nom</label><input type="text" id="s-name" placeholder="ex: KvK Saison 5 — Royaume 1234"></div>
+  </div>
+
+  <div class="section-title">Kill Points & Troupes tuées</div>
+  <div class="card">
+    <div class="form-row" style="margin-bottom:12px">
+      <div class="form-group" style="margin-bottom:0"><label>Kill Points total</label><input type="number" id="s-kp" placeholder="0" min="0"></div>
+      <div class="form-group" style="margin-bottom:0"><label>Troupes tuées total</label><input type="number" id="s-kills" placeholder="0" min="0"></div>
+    </div>
+    <div class="sub-title">Mise à mort par tier</div>
+    <div class="tier-grid tier-grid-5">
+      <div class="tier-hdr"></div>
+      <div class="tier-hdr">T1</div><div class="tier-hdr">T2</div><div class="tier-hdr">T3</div><div class="tier-hdr">T4</div><div class="tier-hdr">T5</div>
+      <div class="tier-label">Kills</div>
+      <input type="number" id="s-k1" placeholder="0" min="0">
+      <input type="number" id="s-k2" placeholder="0" min="0">
+      <input type="number" id="s-k3" placeholder="0" min="0">
+      <input type="number" id="s-k4" placeholder="0" min="0">
+      <input type="number" id="s-k5" placeholder="0" min="0">
+    </div>
+  </div>
+
+  <div class="section-title">Troupes perdues (T4 & T5)</div>
+  <div class="card">
+    <div class="tier-grid tier-grid-4" style="margin-bottom:0">
+      <div class="tier-hdr"></div>
+      <div class="tier-hdr">Inf.</div><div class="tier-hdr">Arch.</div><div class="tier-hdr">Cav.</div><div class="tier-hdr">Siège</div>
+      <div class="tier-label">T4</div>
+      <input type="number" id="s-dead-inf4" placeholder="0" min="0">
+      <input type="number" id="s-dead-arc4" placeholder="0" min="0">
+      <input type="number" id="s-dead-cav4" placeholder="0" min="0">
+      <input type="number" id="s-dead-sie4" placeholder="0" min="0">
+      <div class="tier-label">T5</div>
+      <input type="number" id="s-dead-inf5" placeholder="0" min="0">
+      <input type="number" id="s-dead-arc5" placeholder="0" min="0">
+      <input type="number" id="s-dead-cav5" placeholder="0" min="0">
+      <input type="number" id="s-dead-sie5" placeholder="0" min="0">
+    </div>
+    <div class="sep"></div>
+    <div class="btn-row">
+      <button class="btn primary" onclick="sauvegarder()" style="flex:2">💾 Enregistrer session</button>
+      <button class="btn danger" onclick="archiverKvK()" style="flex:1">Archiver</button>
+    </div>
+    <div id="s-feedback" class="feedback ok"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     HISTORIQUE
+══════════════════════════════════════ -->
+<div id="page-historique" class="page">
+  <div class="section-title">KvK archivés</div>
+  <div id="kvk-list"></div>
+</div>
+
+<!-- ══════════════════════════════════════
+     RESSOURCES & SPEED UP
+══════════════════════════════════════ -->
+<div id="page-rss" class="page">
+
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="switchTab('soins')">🏥 Soins</button>
+    <button class="tab-btn" onclick="switchTab('training')">⚔️ Kills nécessaires</button>
+    <button class="tab-btn" onclick="switchTab('couts')">⚙️ Coûts unitaires</button>
+  </div>
+
+  <!-- TAB: SOINS -->
+  <div id="tab-soins" class="tab-content active">
+    <div class="section-title" style="margin-top:0">Ressources pour soigner les pertes T4 & T5</div>
+    <div class="card" style="margin-bottom:8px">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:10px">Basé sur les troupes perdues saisies dans le KvK actif.</div>
+      <div class="metric-grid" style="margin-bottom:12px">
+        <div class="metric"><div class="metric-label">Pertes T4 à soigner</div><div class="metric-value" id="r-dead4">—</div></div>
+        <div class="metric"><div class="metric-label">Pertes T5 à soigner</div><div class="metric-value" id="r-dead5">—</div></div>
+      </div>
+      <div id="rss-soins-rows">
+        <div class="rss-row"><div class="rss-left"><div class="rss-icon" style="background:rgba(239,159,39,.15)">🌾</div><div class="rss-name">Nourriture</div></div><div><div class="rss-val" id="rs-food">—</div><div class="rss-sub" id="rs-food-sub"></div></div></div>
+        <div class="rss-row"><div class="rss-left"><div class="rss-icon" style="background:rgba(55,138,221,.15)">🪨</div><div class="rss-name">Pierre</div></div><div><div class="rss-val" id="rs-stone">—</div><div class="rss-sub" id="rs-stone-sub"></div></div></div>
+        <div class="rss-row"><div class="rss-left"><div class="rss-icon" style="background:rgba(29,158,117,.15)">🪵</div><div class="rss-name">Bois</div></div><div><div class="rss-val" id="rs-wood">—</div><div class="rss-sub" id="rs-wood-sub"></div></div></div>
+        <div class="rss-row"><div class="rss-left"><div class="rss-icon" style="background:rgba(212,83,126,.15)">🥇</div><div class="rss-name">Or</div></div><div><div class="rss-val" id="rs-gold">—</div><div class="rss-sub" id="rs-gold-sub"></div></div></div>
+        <div class="rss-row"><div class="rss-left"><div class="rss-icon" style="background:rgba(127,119,221,.15)">⚡</div><div class="rss-name">Speed Up soins</div></div><div><div class="rss-val" id="rs-speed-heal">—</div><div class="rss-sub" id="rs-speed-heal-sub"></div></div></div>
+      </div>
+    </div>
+    <div class="card" style="background:rgba(226,75,74,.06);border-color:rgba(226,75,74,.2)">
+      <div style="font-size:11px;color:var(--text2);line-height:1.6">⚠️ Ces estimations utilisent les coûts unitaires configurables dans l'onglet <strong style="color:var(--text)">Coûts</strong>. Modifie-les selon tes recherches et boosts actifs.</div>
+    </div>
+  </div>
+
+  <!-- TAB: KILLS NÉCESSAIRES -->
+  <div id="tab-training" class="tab-content">
+    <div class="section-title" style="margin-top:0">Kills ennemis nécessaires pour l'objectif KP</div>
+
+    <div class="card" style="margin-bottom:8px">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:12px">
+        1 kill T4 ennemi = <strong style="color:var(--accent)">10 KP</strong> &nbsp;·&nbsp; 1 kill T5 ennemi = <strong style="color:var(--accent)">20 KP</strong>
+      </div>
+      <div class="metric-grid" style="margin-bottom:12px">
+        <div class="metric"><div class="metric-label">KP manquant</div><div class="metric-value" id="t-kp-missing">—</div></div>
+        <div class="metric"><div class="metric-label">Mix kills (T4 / T5)</div><div class="metric-value" id="t-mix">—</div></div>
+        <div class="metric"><div class="metric-label">T4 ennemis à tuer</div><div class="metric-value" id="t-t4-needed">—</div><div class="metric-sub">× 10 KP chacun</div></div>
+        <div class="metric"><div class="metric-label">T5 ennemis à tuer</div><div class="metric-value" id="t-t5-needed">—</div><div class="metric-sub">× 20 KP chacun</div></div>
+        <div class="metric"><div class="metric-label">KP généré total</div><div class="metric-value" id="t-kp-gen">—</div></div>
+        <div class="metric"><div class="metric-label">Kills totaux estimés</div><div class="metric-value" id="t-kills-total">—</div></div>
+      </div>
+
+      <div class="sep"></div>
+      <div class="sub-title">Soins estimés pour ces kills (selon K/D actuel)</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:10px">
+        K/D actuel : <strong style="color:var(--text)" id="t-kd-display">—</strong> — pour chaque troupe tuée, tu en perds <strong style="color:var(--text)" id="t-loss-ratio">—</strong>
+      </div>
+      <div class="metric-grid" style="margin-bottom:10px">
+        <div class="metric"><div class="metric-label">Pertes T4 estimées</div><div class="metric-value" id="t-est-dead4">—</div></div>
+        <div class="metric"><div class="metric-label">Pertes T5 estimées</div><div class="metric-value" id="t-est-dead5">—</div></div>
+      </div>
+      <div class="rss-row"><div class="rss-left"><div class="rss-icon" style="background:rgba(239,159,39,.15)">🌾</div><div class="rss-name">Nourriture soins</div></div><div><div class="rss-val" id="tk-food">—</div><div class="rss-sub" id="tk-food-sub"></div></div></div>
+      <div class="rss-row"><div class="rss-left"><div class="rss-icon" style="background:rgba(55,138,221,.15)">🪨</div><div class="rss-name">Pierre soins</div></div><div><div class="rss-val" id="tk-stone">—</div><div class="rss-sub" id="tk-stone-sub"></div></div></div>
+      <div class="rss-row"><div class="rss-left"><div class="rss-icon" style="background:rgba(29,158,117,.15)">🪵</div><div class="rss-name">Bois soins</div></div><div><div class="rss-val" id="tk-wood">—</div><div class="rss-sub" id="tk-wood-sub"></div></div></div>
+      <div class="rss-row"><div class="rss-left"><div class="rss-icon" style="background:rgba(212,83,126,.15)">🥇</div><div class="rss-name">Or soins</div></div><div><div class="rss-val" id="tk-gold">—</div><div class="rss-sub" id="tk-gold-sub"></div></div></div>
+      <div class="rss-row"><div class="rss-left"><div class="rss-icon" style="background:rgba(127,119,221,.15)">⚡</div><div class="rss-name">Speed Up soins</div></div><div><div class="rss-val" id="tk-speed">—</div><div class="rss-sub" id="tk-speed-sub"></div></div></div>
+    </div>
+
+    <div class="card">
+      <div class="sub-title" style="margin-top:0">Mix kills ennemis T4 / T5</div>
+      <div class="form-row">
+        <div class="form-group"><label>% kills T4 ennemis</label><input type="number" id="mix-t4" value="70" min="0" max="100" oninput="renderRSS()"></div>
+        <div class="form-group"><label>% kills T5 ennemis</label><input type="number" id="mix-t5" value="30" min="0" max="100" oninput="renderRSS()"></div>
+      </div>
+      <div class="tip">Ajuste selon la composition de l'armée ennemie. La répartition détermine combien de T4 et T5 tu dois éliminer.</div>
+    </div>
+  </div>
+
+  <!-- TAB: COÛTS UNITAIRES -->
+  <div id="tab-couts" class="tab-content">
+    <div class="section-title" style="margin-top:0">Coûts de soin par type & tier</div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:12px">Chaque type de troupe a des coûts de soin différents. Renseigne les valeurs selon tes recherches et boosts.</div>
+
+    <!-- INFANTERIE -->
+    <div class="card">
+      <div class="sub-title" style="margin-top:0">🗡️ Infanterie</div>
+      <div class="tier-grid tier-grid-5" style="margin-bottom:0">
+        <div class="tier-hdr"></div><div class="tier-hdr">🌾</div><div class="tier-hdr">🪨</div><div class="tier-hdr">🪵</div><div class="tier-hdr">🥇</div><div class="tier-hdr">⚡ sec</div>
+        <div class="tier-label">T4</div>
+        <input type="number" id="cost-inf4-food" value="1100" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-inf4-stone" value="750" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-inf4-wood" value="380" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-inf4-gold" value="180" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-inf4-speed" value="85" min="0" oninput="saveCoûts();renderRSS()">
+        <div class="tier-label">T5</div>
+        <input type="number" id="cost-inf5-food" value="2300" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-inf5-stone" value="1700" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-inf5-wood" value="850" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-inf5-gold" value="420" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-inf5-speed" value="200" min="0" oninput="saveCoûts();renderRSS()">
+      </div>
+    </div>
+
+    <!-- ARCHERIE -->
+    <div class="card">
+      <div class="sub-title" style="margin-top:0">🏹 Archerie</div>
+      <div class="tier-grid tier-grid-5" style="margin-bottom:0">
+        <div class="tier-hdr"></div><div class="tier-hdr">🌾</div><div class="tier-hdr">🪨</div><div class="tier-hdr">🪵</div><div class="tier-hdr">🥇</div><div class="tier-hdr">⚡ sec</div>
+        <div class="tier-label">T4</div>
+        <input type="number" id="cost-arc4-food" value="1000" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-arc4-stone" value="700" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-arc4-wood" value="500" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-arc4-gold" value="190" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-arc4-speed" value="88" min="0" oninput="saveCoûts();renderRSS()">
+        <div class="tier-label">T5</div>
+        <input type="number" id="cost-arc5-food" value="2100" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-arc5-stone" value="1500" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-arc5-wood" value="1100" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-arc5-gold" value="440" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-arc5-speed" value="205" min="0" oninput="saveCoûts();renderRSS()">
+      </div>
+    </div>
+
+    <!-- CAVALERIE -->
+    <div class="card">
+      <div class="sub-title" style="margin-top:0">🐎 Cavalerie</div>
+      <div class="tier-grid tier-grid-5" style="margin-bottom:0">
+        <div class="tier-hdr"></div><div class="tier-hdr">🌾</div><div class="tier-hdr">🪨</div><div class="tier-hdr">🪵</div><div class="tier-hdr">🥇</div><div class="tier-hdr">⚡ sec</div>
+        <div class="tier-label">T4</div>
+        <input type="number" id="cost-cav4-food" value="1300" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-cav4-stone" value="850" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-cav4-wood" value="420" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-cav4-gold" value="210" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-cav4-speed" value="95" min="0" oninput="saveCoûts();renderRSS()">
+        <div class="tier-label">T5</div>
+        <input type="number" id="cost-cav5-food" value="2700" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-cav5-stone" value="1900" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-cav5-wood" value="950" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-cav5-gold" value="480" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-cav5-speed" value="220" min="0" oninput="saveCoûts();renderRSS()">
+      </div>
+    </div>
+
+    <!-- SIÈGE -->
+    <div class="card">
+      <div class="sub-title" style="margin-top:0">🏰 Siège</div>
+      <div class="tier-grid tier-grid-5" style="margin-bottom:0">
+        <div class="tier-hdr"></div><div class="tier-hdr">🌾</div><div class="tier-hdr">🪨</div><div class="tier-hdr">🪵</div><div class="tier-hdr">🥇</div><div class="tier-hdr">⚡ sec</div>
+        <div class="tier-label">T4</div>
+        <input type="number" id="cost-sie4-food" value="900" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-sie4-stone" value="1200" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-sie4-wood" value="600" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-sie4-gold" value="150" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-sie4-speed" value="100" min="0" oninput="saveCoûts();renderRSS()">
+        <div class="tier-label">T5</div>
+        <input type="number" id="cost-sie5-food" value="1900" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-sie5-stone" value="2500" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-sie5-wood" value="1300" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-sie5-gold" value="380" min="0" oninput="saveCoûts();renderRSS()">
+        <input type="number" id="cost-sie5-speed" value="240" min="0" oninput="saveCoûts();renderRSS()">
+      </div>
+    </div>
+
+    <div class="tip" style="padding-bottom:8px">Valeurs par défaut approximatives. Ajuste selon tes recherches, commandants et bâtiments — elles sont sauvegardées automatiquement.</div>
+  </div>
+
+</div>
+
+</div><!-- /content -->
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPage('dashboard')"><span class="nav-icon">📊</span><span class="nav-label">Tableau</span></button>
+  <button class="nav-btn" onclick="showPage('objectifs')"><span class="nav-icon">🎯</span><span class="nav-label">Params</span></button>
+  <button class="nav-btn" onclick="showPage('saisie')"><span class="nav-icon">✏️</span><span class="nav-label">Saisir</span></button>
+  <button class="nav-btn" onclick="showPage('rss')"><span class="nav-icon">💰</span><span class="nav-label">RSS</span></button>
+  <button class="nav-btn" onclick="showPage('historique')"><span class="nav-icon">📜</span><span class="nav-label">Historique</span></button>
+</nav>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modal-title">Détails KvK</div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const TYPES=['inf','arc','cav','sie'];
+const TYPE_LABELS={inf:'Infanterie',arc:'Archerie',cav:'Cavalerie',sie:'Siège'};
+
+let S={
+  current:null, sessions:[], archives:[], objectifs:[],
+  params:{power:0,mult:1,kpBase:0,
+    baseK1:0,baseK2:0,baseK3:0,baseK4:0,baseK5:0,
+    baseInf4:0,baseArc4:0,baseCav4:0,baseSie4:0,
+    baseInf5:0,baseArc5:0,baseCav5:0,baseSie5:0},
+  chart:null
+};
+
+function load(){try{let d=localStorage.getItem('rok_v3');if(d){let p=JSON.parse(d);Object.assign(S,p);S.chart=null;}}catch(e){}}
+function save(){try{localStorage.setItem('rok_v3',JSON.stringify({current:S.current,sessions:S.sessions,archives:S.archives,objectifs:S.objectifs,params:S.params}));}catch(e){}}
+
+function fmt(n){if(n===null||n===undefined||isNaN(n))return'—';if(n>=1e9)return(n/1e9).toFixed(2)+'G';if(n>=1e6)return(n/1e6).toFixed(2)+'M';if(n>=1e3)return Math.round(n/1e3)+'K';return Math.round(n).toLocaleString('fr-FR');}
+function pctClass(p){return p>=100?'calc-good':p>=50?'calc-mid':'calc-bad';}
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function g(id){let el=document.getElementById(id);return el?+el.value||0:0;}
+function gs(id){let el=document.getElementById(id);return el?el.value.trim():'';}
+function sv(id,v){let el=document.getElementById(id);if(el)el.value=v||'';}
+
+function totalDead4(c){if(!c)return 0;return TYPES.reduce((s,t)=>s+(c['dead_'+t+'4']||0),0);}
+function totalDead5(c){if(!c)return 0;return TYPES.reduce((s,t)=>s+(c['dead_'+t+'5']||0),0);}
+function totalDead(c){return totalDead4(c)+totalDead5(c);}
+function kpFromTiers(c){if(!c)return 0;return(c.k1||0)*5+(c.k2||0)*5+(c.k3||0)*5+(c.k4||0)*10+(c.k5||0)*20;}
+function kpObjectif(){return(S.params.power||0)*(S.params.mult||1);}
+function kpNet(){let o=kpObjectif();return o?Math.max(0,o-(S.params.kpBase||0)):0;}
+function getCurVal(type){
+  if(!S.current)return 0;
+  let c=S.current;
+  return type==='kp'?c.kp||0:type==='kills'?c.kills||0:totalDead(c);
+}
+function typeLabel(t){return{kp:'Kill Points',kills:'Troupes tuées',dead:'Pertes max'}[t]||t;}
+
+// ── NAV ──
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-btn')[{dashboard:0,objectifs:1,saisie:2,rss:3,historique:4}[id]].classList.add('active');
+  if(id==='dashboard')renderDash();
+  if(id==='historique')renderHistorique();
+  if(id==='objectifs'){renderObjList();renderCalcPreview();}
+  if(id==='saisie')prefillSaisie();
+  if(id==='rss'){loadCoûts();renderRSS();}
+}
+
+// ── TABS RSS ──
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',['soins','training','couts'][i]===tab));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  renderRSS();
+}
+
+// ── PARAMS ──
+function saveParams(){
+  S.params.power  =g('param-power');
+  S.params.mult   =+document.getElementById('param-mult').value||1;
+  S.params.kpBase =g('param-kp-base');
+  S.params.baseK1=g('base-k1');S.params.baseK2=g('base-k2');S.params.baseK3=g('base-k3');S.params.baseK4=g('base-k4');S.params.baseK5=g('base-k5');
+  TYPES.forEach(t=>{S.params['base'+cap(t)+'4']=g('base-'+t+'4');S.params['base'+cap(t)+'5']=g('base-'+t+'5');});
+  save();
+}
+function loadParams(){
+  sv('param-power',S.params.power||'');
+  document.getElementById('param-mult').value=S.params.mult||1;
+  sv('param-kp-base',S.params.kpBase||'');
+  ['k1','k2','k3','k4','k5'].forEach(k=>sv('base-'+k,S.params['base'+cap(k)]||''));
+  TYPES.forEach(t=>{sv('base-'+t+'4',S.params['base'+cap(t)+'4']||'');sv('base-'+t+'5',S.params['base'+cap(t)+'5']||'');});
+  renderCalcPreview();
+}
+function renderCalcPreview(){
+  let obj=kpObjectif(),net=kpNet();
+  document.getElementById('calc-obj-kp').textContent=obj?fmt(obj):'—';
+  document.getElementById('calc-kp-net').textContent=net?fmt(net):'—';
+}
+
+// ── OBJECTIFS ──
+function addObjectif(){
+  let name=document.getElementById('new-obj-name').value.trim();
+  let type=document.getElementById('new-obj-type').value;
+  let val=+document.getElementById('new-obj-val').value;
+  let color=document.getElementById('new-obj-color').value;
+  if(!name||!val){alert('Remplis le nom et la valeur cible.');return;}
+  S.objectifs.push({id:Date.now(),name,type,val,color});
+  document.getElementById('new-obj-name').value='';
+  document.getElementById('new-obj-val').value='';
+  save();renderObjList();renderDash();
+}
+function delObj(id){S.objectifs=S.objectifs.filter(o=>o.id!==id);save();renderObjList();renderDash();}
+function renderObjList(){
+  let el=document.getElementById('obj-list');
+  if(!S.objectifs.length){el.innerHTML='<div class="empty"><div class="empty-icon">🎯</div>Aucun objectif défini.</div>';return;}
+  el.innerHTML=S.objectifs.map(o=>{
+    let cur=getCurVal(o.type),p=cur?Math.min(100,Math.round(cur/o.val*100)):0;
+    let bc=p>=100?'badge-green':p>=50?'badge-amber':'badge-red';
+    return`<div class="obj-item"><div class="obj-item-head"><div class="obj-name-wrap"><span class="obj-dot" style="background:${o.color}"></span><span class="obj-name">${o.name}</span></div><div style="display:flex;align-items:center;gap:8px"><span class="badge ${bc}">${p}%</span><button class="obj-del" onclick="delObj(${o.id})">×</button></div></div><div class="progress-wrap"><div class="progress-label"><span>${fmt(cur)}</span><span>${fmt(o.val)}</span></div><div class="progress-bar"><div class="progress-fill" style="width:${p}%;background:${o.color}"></div></div></div><div style="font-size:10px;color:var(--text3);margin-top:4px">${typeLabel(o.type)}</div></div>`;
+  }).join('');
+}
+
+// ── SAISIE ──
+function prefillSaisie(){
+  if(!S.current)return;
+  let c=S.current;
+  sv('s-name',c.name);sv('s-kp',c.kp);sv('s-kills',c.kills);
+  ['k1','k2','k3','k4','k5'].forEach(k=>sv('s-'+k,c[k]));
+  TYPES.forEach(t=>{sv('s-dead-'+t+'4',c['dead_'+t+'4']);sv('s-dead-'+t+'5',c['dead_'+t+'5']);});
+}
+function sauvegarder(){
+  let name=gs('s-name')||'KvK sans nom';
+  let kp=g('s-kp'),kills=g('s-kills');
+  let k1=g('s-k1'),k2=g('s-k2'),k3=g('s-k3'),k4=g('s-k4'),k5=g('s-k5');
+  let dead={};
+  TYPES.forEach(t=>{dead['dead_'+t+'4']=g('s-dead-'+t+'4');dead['dead_'+t+'5']=g('s-dead-'+t+'5');});
+  let ts=Date.now();
+  if(!S.current)S.current={startTs:ts};
+  S.current={...S.current,name,kp,kills,k1,k2,k3,k4,k5,...dead,ts};
+  S.sessions.push({kp,kills,dead4:totalDead4(S.current),dead5:totalDead5(S.current),ts,label:new Date(ts).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit'})});
+  save();
+  showFeedback('Session enregistrée !','ok','s-feedback');
+}
+function archiverKvK(){
+  if(!S.current){showFeedback('Aucun KvK actif.','info','s-feedback');return;}
+  if(!confirm('Archiver ce KvK ?'))return;
+  S.archives.push({...S.current,sessions:[...S.sessions],archivedAt:Date.now()});
+  S.current=null;S.sessions=[];
+  ['s-name','s-kp','s-kills','s-k1','s-k2','s-k3','s-k4','s-k5'].forEach(id=>sv(id,''));
+  TYPES.forEach(t=>{sv('s-dead-'+t+'4','');sv('s-dead-'+t+'5','');});
+  save();showFeedback('KvK archivé !','info','s-feedback');renderDash();
+}
+function showFeedback(msg,type,id){
+  let el=document.getElementById(id);el.textContent=msg;el.className='feedback '+type;el.style.display='block';
+  setTimeout(()=>el.style.display='none',3000);
+}
+
+// ── DASHBOARD ──
+function renderDash(){
+  let cur=S.current;
+  document.getElementById('dash-no-kvk').style.display=cur?'none':'block';
+  document.getElementById('dash-active').style.display=cur?'block':'none';
+  document.getElementById('header-sub').textContent=cur?cur.name:'Rise of Kingdoms — Suivi de statistiques';
+  document.getElementById('header-badge').innerHTML='';
+  if(!cur)return;
+
+  let d4=totalDead4(cur),d5=totalDead5(cur),totalD=d4+d5;
+  document.getElementById('m-kp').textContent=fmt(cur.kp);
+  document.getElementById('m-kills').textContent=fmt(cur.kills);
+  document.getElementById('m-dead4').textContent=fmt(d4);
+  document.getElementById('m-dead5').textContent=fmt(d5);
+
+  let objKP=S.objectifs.find(o=>o.type==='kp');
+  let kpTarget=objKP?objKP.val:(kpObjectif()||null);
+  let kpPct=kpTarget?Math.min(100,Math.round((cur.kp||0)/kpTarget*100)):null;
+  let kd=totalD?((cur.kills||0)/totalD).toFixed(2):'—';
+
+  let kdEl=document.getElementById('c-kd');
+  kdEl.textContent=kd;
+  kdEl.className='metric-value '+(totalD?(cur.kills/totalD>5?'calc-good':cur.kills/totalD>2?'calc-mid':'calc-bad'):'');
+
+  let kpEl=document.getElementById('c-kp-rate');
+  kpEl.textContent=kpPct!==null?kpPct+'%':'—';
+  kpEl.className='metric-value '+(kpPct!==null?pctClass(kpPct):'');
+  document.getElementById('c-kp-sub').textContent=kpTarget?fmt(cur.kp)+' / '+fmt(kpTarget):'';
+
+  let missing=kpTarget?Math.max(0,kpTarget-(cur.kp||0)):null;
+  let missEl=document.getElementById('c-kp-missing');
+  missEl.textContent=missing!==null?fmt(missing):'—';
+  missEl.className='metric-value '+(missing!==null?(missing===0?'calc-good':missing<(kpTarget||1)*0.3?'calc-mid':'calc-bad'):'');
+
+  document.getElementById('c-sessions').textContent=S.sessions.length;
+
+  let kpTiers=kpFromTiers(cur);
+  let kpPwr=kpObjectif();
+  document.getElementById('c-kp-tiers').textContent=kpTiers?fmt(kpTiers):'—';
+  document.getElementById('c-kp-tiers-sub').textContent=(cur.k4||cur.k5)?`T4:${fmt((cur.k4||0)*10)} + T5:${fmt((cur.k5||0)*20)}`:'';
+  document.getElementById('c-kp-power').textContent=kpPwr?fmt(kpPwr):'—';
+  document.getElementById('c-kp-power-sub').textContent=S.params.power?`${fmt(S.params.power)} × ${S.params.mult}`:'Renseigne ta puissance';
+
+  let objSec=document.getElementById('dash-obj-section');
+  if(S.objectifs.length){
+    objSec.innerHTML='<div class="sep"></div>'+S.objectifs.map(o=>{
+      let val=getCurVal(o.type),p=Math.min(100,Math.round(val/o.val*100));
+      return`<div class="progress-wrap"><div class="progress-label"><span style="font-size:10px;color:var(--text2)">${o.name}</span><span style="font-size:11px;font-weight:600;color:${o.color}">${p}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${p}%;background:${o.color}"></div></div></div>`;
+    }).join('');
+  }else objSec.innerHTML='';
+
+  renderChart();
+}
+
+// ── CHART ──
+function renderChart(){
+  let labels=S.sessions.length?S.sessions.map(s=>s.label):['Début'];
+  let kpData=S.sessions.length?S.sessions.map(s=>s.kp):[0];
+  let killData=S.sessions.length?S.sessions.map(s=>s.kills):[0];
+  let kpTarget=S.objectifs.find(o=>o.type==='kp');
+  let targetVal=kpTarget?kpTarget.val:(kpObjectif()||null);
+  let datasets=[
+    {label:'Kill Points',data:kpData,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.1)',fill:true,tension:.35,pointRadius:3,pointBackgroundColor:'#1D9E75',yAxisID:'y'},
+    {label:'Troupes tuées',data:killData,borderColor:'#EF9F27',fill:false,tension:.35,pointRadius:3,pointBackgroundColor:'#EF9F27',yAxisID:'y2'}
+  ];
+  if(targetVal)datasets.splice(1,0,{label:'Objectif KP',data:labels.map(()=>targetVal),borderColor:'#378ADD',borderDash:[5,3],pointRadius:0,fill:false,tension:0,yAxisID:'y'});
+  let ctx=document.getElementById('mainChart').getContext('2d');
+  if(S.chart)S.chart.destroy();
+  S.chart=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'#484f58',font:{size:10}},grid:{color:'rgba(255,255,255,.05)'}},y:{position:'left',ticks:{color:'#484f58',font:{size:10},callback:v=>fmt(v)},grid:{color:'rgba(255,255,255,.05)'}},y2:{position:'right',ticks:{color:'#484f58',font:{size:10},callback:v=>fmt(v)},grid:{drawOnChartArea:false}}}}});
+}
+
+// ── HISTORIQUE ──
+function renderHistorique(){
+  let el=document.getElementById('kvk-list');
+  if(!S.archives.length){el.innerHTML='<div class="empty"><div class="empty-icon">📜</div>Aucun KvK archivé.<br>Archive un KvK depuis "Saisir".</div>';return;}
+  el.innerHTML=S.archives.slice().reverse().map((a,i)=>{
+    let d4=totalDead4(a),d5=totalDead5(a),totalD=d4+d5;
+    let kd=totalD?(a.kills/totalD).toFixed(2):'—';
+    let date=new Date(a.archivedAt).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+    return`<div class="kvk-item" onclick="showDetail(${S.archives.length-1-i})"><div class="kvk-item-head"><div class="kvk-name">${a.name}</div><span class="badge badge-green">Archivé</span></div><div class="kvk-mini-stats"><div class="kvk-mini-stat">KP <span>${fmt(a.kp)}</span></div><div class="kvk-mini-stat">Kills <span>${fmt(a.kills)}</span></div><div class="kvk-mini-stat">Pertes <span>${fmt(totalD)}</span></div><div class="kvk-mini-stat">K/D <span>${kd}</span></div></div><div class="kvk-date">${date} · ${a.sessions?a.sessions.length:0} sessions</div></div>`;
+  }).join('');
+}
+
+function showDetail(idx){
+  let a=S.archives[idx];if(!a)return;
+  document.getElementById('modal-title').textContent=a.name;
+  let d4=totalDead4(a),d5=totalDead5(a),totalD=d4+d5;
+  let kd=totalD?(a.kills/totalD).toFixed(2):'—';
+  let date=new Date(a.archivedAt).toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
+
+  let deadRows=TYPES.map(t=>{
+    let v4=a['dead_'+t+'4']||0,v5=a['dead_'+t+'5']||0;
+    if(!v4&&!v5)return'';
+    return`<tr><td style="font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;color:var(--text2);padding:4px 0">${TYPE_LABELS[t]}</td><td style="font-size:12px;text-align:right;padding:4px 8px">${fmt(v4)}</td><td style="font-size:12px;text-align:right;padding:4px 0">${fmt(v5)}</td></tr>`;
+  }).join('');
+
+  let objRows=S.objectifs.map(o=>{
+    let val=o.type==='kp'?a.kp:o.type==='kills'?a.kills:totalD;
+    let p=Math.min(100,Math.round(val/o.val*100));
+    let bc=p>=100?'badge-green':p>=50?'badge-amber':'badge-red';
+    return`<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${o.name}</span><span class="badge ${bc}">${p}%</span></div><div class="progress-bar"><div class="progress-fill" style="width:${p}%;background:${o.color}"></div></div></div>`;
+  }).join('');
+
+  document.getElementById('modal-content').innerHTML=`
+    <div style="font-size:11px;color:var(--text2);margin-bottom:14px">Archivé le ${date}</div>
+    <div class="metric-grid" style="margin-bottom:12px">
+      <div class="metric"><div class="metric-label">Kill Points</div><div class="metric-value">${fmt(a.kp)}</div></div>
+      <div class="metric"><div class="metric-label">Troupes tuées</div><div class="metric-value">${fmt(a.kills)}</div></div>
+      <div class="metric"><div class="metric-label">Pertes T4</div><div class="metric-value">${fmt(d4)}</div></div>
+      <div class="metric"><div class="metric-label">Pertes T5</div><div class="metric-value">${fmt(d5)}</div></div>
+      <div class="metric"><div class="metric-label">Ratio K/D</div><div class="metric-value">${kd}</div></div>
+      <div class="metric"><div class="metric-label">Sessions</div><div class="metric-value">${a.sessions?a.sessions.length:0}</div></div>
+    </div>
+    ${deadRows?`<div class="sep"></div><div class="sub-title" style="margin-top:0">Pertes par type & tier</div><table style="width:100%;border-collapse:collapse"><thead><tr><th style="font-size:10px;color:var(--text3);text-align:left;padding-bottom:6px">Type</th><th style="font-size:10px;color:var(--text3);text-align:right;padding-bottom:6px">T4</th><th style="font-size:10px;color:var(--text3);text-align:right;padding-bottom:6px">T5</th></tr></thead><tbody>${deadRows}</tbody></table>`:''}
+    ${(a.k4||a.k5)?`<div class="sep"></div><div class="sub-title" style="margin-top:0">Kills par tier</div><div class="metric-grid"><div class="metric"><div class="metric-label">Kills T4 (×10 KP)</div><div class="metric-value">${fmt(a.k4)}</div></div><div class="metric"><div class="metric-label">Kills T5 (×20 KP)</div><div class="metric-value">${fmt(a.k5)}</div></div><div class="metric"><div class="metric-label">KP estimé T4+T5</div><div class="metric-value">${fmt(kpFromTiers(a))}</div></div></div>`:''}
+    ${objRows?`<div class="sep"></div><div class="sub-title" style="margin-top:0">Objectifs</div>${objRows}`:''}
+  `;
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal(e){if(!e||e.target===document.getElementById('modal-bg'))document.getElementById('modal-bg').classList.remove('open');}
+
+// ── COÛTS UNITAIRES ──
+// clés : type(inf/arc/cav/sie) + tier(4/5) + res(food/stone/wood/gold/speed)
+const COUT_KEYS=[];
+const COUT_DEFAULTS={};
+const COUT_DEF_VALS={
+  inf:{4:{food:1100,stone:750,wood:380,gold:180,speed:85},  5:{food:2300,stone:1700,wood:850,gold:420,speed:200}},
+  arc:{4:{food:1000,stone:700,wood:500,gold:190,speed:88},  5:{food:2100,stone:1500,wood:1100,gold:440,speed:205}},
+  cav:{4:{food:1300,stone:850,wood:420,gold:210,speed:95},  5:{food:2700,stone:1900,wood:950,gold:480,speed:220}},
+  sie:{4:{food:900,stone:1200,wood:600,gold:150,speed:100}, 5:{food:1900,stone:2500,wood:1300,gold:380,speed:240}}
+};
+TYPES.forEach(t=>[4,5].forEach(tier=>['food','stone','wood','gold','speed'].forEach(res=>{
+  let k=t+tier+'-'+res;
+  COUT_KEYS.push(k);
+  COUT_DEFAULTS[k]=COUT_DEF_VALS[t][tier][res];
+})));
+
+function saveCoûts(){
+  let obj={};
+  COUT_KEYS.forEach(k=>{
+    let el=document.getElementById('cost-'+k);
+    obj[k]=el?+el.value||0:COUT_DEFAULTS[k];
+  });
+  try{localStorage.setItem('rok_couts2',JSON.stringify(obj));}catch(e){}
+}
+function loadCoûts(){
+  let stored={};
+  try{let d=localStorage.getItem('rok_couts2');if(d)stored=JSON.parse(d);}catch(e){}
+  COUT_KEYS.forEach(k=>{
+    let el=document.getElementById('cost-'+k);
+    if(el)el.value=stored[k]!==undefined?stored[k]:COUT_DEFAULTS[k];
+  });
+}
+// getCoût('inf',4,'food') → valeur saisie ou défaut
+function getCoût(type,tier,res){
+  let el=document.getElementById('cost-'+type+tier+'-'+res);
+  return el?+el.value||0:(COUT_DEFAULTS[type+tier+'-'+res]||0);
+}
+function fmtSpeed(secs){
+  if(!secs||isNaN(secs))return'—';
+  let d=Math.floor(secs/86400),h=Math.floor((secs%86400)/3600),m=Math.floor((secs%3600)/60);
+  let parts=[];
+  if(d)parts.push(d+'j');if(h)parts.push(h+'h');if(m||(!d&&!h))parts.push(m+'min');
+  return parts.join(' ');
+}
+
+// ── RENDER RSS ──
+function renderRSS(){
+  let cur=S.current;
+  let d4=cur?totalDead4(cur):0;
+  let d5=cur?totalDead5(cur):0;
+
+  // ── Soins : calcul par type × tier ──
+  let el4=document.getElementById('r-dead4'),el5=document.getElementById('r-dead5');
+  if(el4)el4.textContent=fmt(d4);
+  if(el5)el5.textContent=fmt(d5);
+
+  const RES=['food','stone','wood','gold','speed'];
+  let rss={food:0,stone:0,wood:0,gold:0,speed:0};
+  // Pour chaque type et tier, on récupère les pertes saisies et les coûts spécifiques
+  TYPES.forEach(t=>{
+    let q4=cur?cur['dead_'+t+'4']||0:0;
+    let q5=cur?cur['dead_'+t+'5']||0:0;
+    RES.forEach(res=>{
+      rss[res]+=q4*getCoût(t,4,res)+q5*getCoût(t,5,res);
+    });
+  });
+  let healTotal=d4+d5;
+  let setRSS=(prefix,r)=>{
+    let vEl=document.getElementById(prefix+'-'+r);
+    let sEl=document.getElementById(prefix+'-'+r+'-sub');
+    if(r==='speed'){
+      if(vEl)vEl.textContent=healTotal?fmtSpeed(rss[r]):'—';
+      if(sEl&&healTotal)sEl.textContent=`≈ ${fmt(Math.ceil(rss[r]/60))} min de speed`;
+      else if(sEl)sEl.textContent='';
+    } else {
+      if(vEl)vEl.textContent=healTotal?fmt(rss[r]):'—';
+      // sous-total T4 vs T5 toutes catégories
+      let t4tot=TYPES.reduce((s,t)=>s+(cur?cur['dead_'+t+'4']||0:0)*getCoût(t,4,r),0);
+      let t5tot=TYPES.reduce((s,t)=>s+(cur?cur['dead_'+t+'5']||0:0)*getCoût(t,5,r),0);
+      if(sEl&&healTotal)sEl.textContent=`T4: ${fmt(t4tot)} · T5: ${fmt(t5tot)}`;
+      else if(sEl)sEl.textContent='';
+    }
+  };
+  RES.forEach(r=>setRSS('rs',r));
+
+  // ── Kills nécessaires pour l'objectif KP ──
+  let objKP=S.objectifs.find(o=>o.type==='kp');
+  let kpTarget=objKP?objKP.val:(kpObjectif()||0);
+  let kpActuel=cur?cur.kp||0:0;
+  let kpMissing=Math.max(0,kpTarget-kpActuel);
+
+  let mixT4El=document.getElementById('mix-t4'),mixT5El=document.getElementById('mix-t5');
+  let mixT4=mixT4El?+mixT4El.value||70:70;
+  let mixT5=mixT5El?+mixT5El.value||30:30;
+  let mixTotal=mixT4+mixT5||100;
+  let pT4=mixT4/mixTotal, pT5=mixT5/mixTotal;
+
+  // Résoudre : kpMissing = nbT4*10 + nbT5*20, répartis selon mix
+  let kpMoyParKill=pT4*10+pT5*20;
+  let killsTotaux=kpMoyParKill>0?Math.ceil(kpMissing/kpMoyParKill):0;
+  let nbT4=Math.ceil(killsTotaux*pT4);
+  let nbT5=Math.ceil(killsTotaux*pT5);
+  let kpGen=nbT4*10+nbT5*20;
+
+  let setEl=(id,v)=>{let el=document.getElementById(id);if(el)el.textContent=v;};
+  setEl('t-kp-missing', kpTarget?fmt(kpMissing):'—');
+  setEl('t-mix', killsTotaux?`${Math.round(pT4*100)}% T4 / ${Math.round(pT5*100)}% T5`:'—');
+  setEl('t-t4-needed', nbT4?fmt(nbT4):'—');
+  setEl('t-t5-needed', nbT5?fmt(nbT5):'—');
+  setEl('t-kp-gen', kpGen?fmt(kpGen):'—');
+  setEl('t-kills-total', killsTotaux?fmt(killsTotaux):'—');
+
+  // Soins estimés basés sur le K/D actuel
+  let totalD=d4+d5;
+  let kd=cur&&totalD&&cur.kills?cur.kills/totalD:null;
+  let kdStr=kd?kd.toFixed(2):'—';
+  let lossRatio=kd?`1/${kd.toFixed(1)}`:'K/D non calculé';
+  setEl('t-kd-display', kdStr);
+  setEl('t-loss-ratio', lossRatio);
+
+  // pertes estimées = kills / K/D, réparties T4/T5 selon mix
+  let estDead=kd&&killsTotaux?Math.ceil(killsTotaux/kd):0;
+  let estDead4=Math.ceil(estDead*pT4);
+  let estDead5=Math.ceil(estDead*pT5);
+  setEl('t-est-dead4', estDead4?fmt(estDead4):'—');
+  setEl('t-est-dead5', estDead5?fmt(estDead5):'—');
+
+  // RSS soins pour ces pertes estimées — on utilise la moyenne des 4 types
+  let avgCoût=(tier,res)=>TYPES.reduce((s,t)=>s+getCoût(t,tier,res),0)/4;
+  let tkrss={food:0,stone:0,wood:0,gold:0,speed:0};
+  ['food','stone','wood','gold','speed'].forEach(res=>{
+    tkrss[res]+=estDead4*avgCoût(4,res)+estDead5*avgCoût(5,res);
+  });
+  let healEst=estDead4+estDead5;
+  ['food','stone','wood','gold','speed'].forEach(r=>{
+    let vEl=document.getElementById('tk-'+r);
+    let sEl=document.getElementById('tk-'+r+'-sub');
+    if(r==='speed'){
+      if(vEl)vEl.textContent=healEst?fmtSpeed(tkrss[r]):'—';
+      if(sEl&&healEst)sEl.textContent=`≈ ${fmt(Math.ceil(tkrss[r]/60))} min`;
+      else if(sEl)sEl.textContent='';
+    } else {
+      if(vEl)vEl.textContent=healEst?fmt(tkrss[r]):'—';
+      if(sEl&&healEst)sEl.textContent=`T4: ${fmt(estDead4*avgCoût(4,r))} · T5: ${fmt(estDead5*avgCoût(5,r))}`;
+      else if(sEl)sEl.textContent='';
+    }
+  });
+}
+
+load();loadParams();renderDash();renderObjList();renderHistorique();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+</script>
+</body>
+</html>
